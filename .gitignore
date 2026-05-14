@@ -42,3 +42,26 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Data
+data/*
+!data/.gitkeep
+!data/mrms_3hr_cubes_128/
+!data/mrms_3hr_cubes_128/.gitkeep
+
+# Outputs
+outputs/*
+!outputs/.gitkeep
+!outputs/checkpoints/
+!outputs/checkpoints/.gitkeep
+!outputs/figures/
+!outputs/figures/.gitkeep
+
+# Large data/model files
+*.npz
+*.npy
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.ckpt
