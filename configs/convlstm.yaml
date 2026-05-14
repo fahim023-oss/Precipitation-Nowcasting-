@@ -1,0 +1,78 @@
+# ConvLSTM precipitation nowcasting configuration
+# ------------------------------------------------
+# Task:
+#   60 MRMS input frames  ->  30 predicted frames
+#
+# Data format:
+#   Each .npz file should contain:
+#       precip: array with shape (90, 128, 128)
+#
+# Units:
+#   Raw precipitation is assumed to be in mm/hr.
+#   The dataset applies log1p preprocessing before training.
+
+project:
+  name: "mrms-convlstm-nowcasting"
+  seed: 42
+
+data:
+  data_folder: "data/mrms_3hr_cubes_128"
+  precip_key: "precip"
+
+  in_len: 60
+  out_len: 30
+
+  train_frac: 0.70
+  val_frac: 0.15
+
+loader:
+  batch_size: 4
+  num_workers: 4
+  pin_memory: true
+
+model:
+  hidden1: 64
+  hidden2: 96
+  kernel_size: 3
+
+training:
+  epochs: 50
+  patience: 10
+
+  lr: 0.001
+  weight_decay: 0.0001
+  eta_min: 0.00001
+
+  grad_clip: 1.0
+
+  # Scheduled sampling / teacher forcing
+  teacher_forcing_start: 1.0
+  teacher_forcing_end: 0.0
+  teacher_forcing_epochs: 20
+
+loss:
+  # Heavy-rain threshold is in raw mm/hr here.
+  # The training script will convert it using log1p.
+  heavy_threshold_mmhr: 5.0
+  heavy_weight: 3.0
+
+evaluation:
+  thresholds_mmhr: [0.5, 2.0, 5.0, 10.0]
+
+outputs:
+  checkpoint_path: "outputs/checkpoints/best_convlstm.pt"
+  training_curve_path: "outputs/figures/training_curve.png"
+  prediction_figure_path: "outputs/figures/convlstm_predictions.png"
+  selected_event_figure_path: "outputs/figures/convlstm_best_prediction.png"
+  metrics_path: "outputs/metrics_test.txt"
+
+plotting:
+  lead_times: [0, 9, 19, 29]
+  selected_event_lead_times: [0, 9]
+  selected_event_row_labels:
+    - "t+1 (2 min)"
+    - "t+10 (20 min)"
+
+  # Optional file used by scripts/plot_prediction_example.py
+  # Leave null to use the first test sample.
+  target_file: "mrms_cube_20230322_035000.npz"
